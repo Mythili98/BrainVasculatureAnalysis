@@ -1,4 +1,4 @@
-# Vein Mesh Processing and Analysis Toolkit
+# Vein Mesh Processing and Analysis
 
 This Python script provides a comprehensive pipeline for processing, analyzing, and visualizing 3D vein-like meshes using `trimesh`, `vedo`, `skeletor`, and `networkx`.
 The primary applications include connected component analysis, skeletonization, branch point detection, and radius tapering metric computation. Optional functionalities like landmark selection and rotating component visualization (GIF) are also provided.
