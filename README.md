@@ -29,6 +29,19 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
 ## Basic Component Processing
 
 This will provide results of radii tapering.
+This will perform skeletonization and calculates: 
+
+        Absolute and relative radius drop
+
+        Radius tapering slope
+
+        Cumulative length and tapering profile
+
+    Saves:
+
+        radius_metrics.csv
+
+        radius_profile.csv
 
 ```bash
 python main.py --mesh_path <path_to_your_mesh_file> --analyze
@@ -53,6 +66,7 @@ If .pkl file is already generated with components and landmarks:
 ```bash
 python main.py --mesh_path <path_to_your_mesh_file> --read_saved_comp
 ```
+
 
 
 
