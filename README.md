@@ -31,17 +31,17 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
 This will provide results of radii tapering.
 This will perform skeletonization and calculates: 
 
-        Absolute and relative radius drop
+Absolute and relative radius drop,
 
-        Radius tapering slope
+Radius tapering slope
 
-        Cumulative length and tapering profile
+Cumulative length and tapering profile
 
-    Saves:
+Saves the data to:
 
-        radius_metrics.csv
+radius_metrics.csv and radius_profile.csv
 
-        radius_profile.csv
+# Other metrics coming soon..
 
 ```bash
 python main.py --mesh_path <path_to_your_mesh_file> --analyze
