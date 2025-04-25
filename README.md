@@ -29,29 +29,29 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
 
 This will provide results of radii tapering.
 
-'''bash
+```bash
 python main.py --mesh_path <path_to_your_mesh_file> --analyze
-
+```
 ## Landmark selection for mesh manipulation
 
-'''bash
+```bash
 python main.py --mesh_path <path_to_your_mesh_file> --landmark_select
-
+```
 ## Visualize different components of the brain vasculature in tiled gif
-'''bash
+```bash
 python main.py --mesh_path <path_to_your_mesh_file> --gif_tiles
-
+```
 ## Visualize components saved during landmark selection
 Landmark selection saves the component on which landmark is selected as a seperate mesh along with the selected point. Visualize for further analysis
 
-'''bash
+```bash
 python main.py --mesh_path <path_to_your_mesh_file> --landmark_select --read_saved_comp
-
+```
 If .pkl file is already generated with components and landmarks:
 
-'''bash
+```bash
 python main.py --mesh_path <path_to_your_mesh_file> --read_saved_comp
-
+```
 
 
 
