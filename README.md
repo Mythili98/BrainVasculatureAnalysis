@@ -41,11 +41,11 @@ Saves the data to:
 
 radius_metrics.csv and radius_profile.csv
 
-# Other metrics coming soon..
 
 ```bash
 python main.py --mesh_path <path_to_your_mesh_file> --analyze
 ```
+# Other metrics coming soon..
 ## Landmark selection for mesh manipulation
 
 ```bash
