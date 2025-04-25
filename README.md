@@ -69,7 +69,8 @@ If .pkl file is already generated with components and landmarks:
 python main.py --mesh_path <path_to_your_mesh_file> --read_saved_comp
 ```
 
-
+## Acknowledgements
+Skeletor: https://github.com/navis-org/skeletor/tree/master
 
 
 
