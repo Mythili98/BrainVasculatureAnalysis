@@ -21,8 +21,9 @@ The primary applications include connected component analysis, skeletonization, 
 
 Install all dependencies:
 
+```bash
 pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
-
+```
 ---
 
 ## Basic Component Processing
