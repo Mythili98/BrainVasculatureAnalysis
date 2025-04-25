@@ -48,6 +48,8 @@ python main.py --mesh_path <path_to_your_mesh_file> --analyze
 # Other metrics coming soon..
 ## Landmark selection for mesh manipulation
 
+While selecting landmark, after selection is done, instead of traversing through all the mesh components, press 'Esc' to exit the plotter and save the results. Saved landmarks with the associated mesh is available as 'all_saved_comp.pkl' file. These files can be used for mesh manipulation and analysis in a collaborative fashion.
+
 ```bash
 python main.py --mesh_path <path_to_your_mesh_file> --landmark_select
 ```
