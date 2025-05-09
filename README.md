@@ -43,7 +43,7 @@ radius_metrics.csv and radius_profile.csv
 
 
 ```bash
-python main.py --mesh_path <path_to_your_mesh_file> --analyze
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze
 ```
 # Other metrics coming soon..
 ## Landmark selection for mesh manipulation
@@ -51,22 +51,22 @@ python main.py --mesh_path <path_to_your_mesh_file> --analyze
 While selecting landmark, after selection is done, instead of traversing through all the mesh components, press 'Esc' to exit the plotter and save the results. Saved landmarks with the associated mesh is available as 'all_saved_comp.pkl' file. These files can be used for mesh manipulation and analysis in a collaborative fashion.
 
 ```bash
-python main.py --mesh_path <path_to_your_mesh_file> --landmark_select
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --landmark_select
 ```
 ## Visualize different components of the brain vasculature in tiled gif
 ```bash
-python main.py --mesh_path <path_to_your_mesh_file> --gif_tiles
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --gif_tiles
 ```
 ## Visualize components saved during landmark selection
 Landmark selection saves the component on which landmark is selected as a seperate mesh along with the selected point. Visualize for further analysis
 
 ```bash
-python main.py --mesh_path <path_to_your_mesh_file> --landmark_select --read_saved_comp
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --landmark_select --read_saved_comp
 ```
 If .pkl file is already generated with components and landmarks:
 
 ```bash
-python main.py --mesh_path <path_to_your_mesh_file> --read_saved_comp
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --read_saved_comp
 ```
 
 ## Acknowledgements
