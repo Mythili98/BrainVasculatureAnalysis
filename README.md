@@ -10,10 +10,10 @@ The primary applications include connected component analysis, skeletonization, 
 - **Mesh Component Splitting**: Automatically segments a mesh into its connected components.
 - **Skeletonization**: Uses wavefront-based skeletonization (`skeletor`) to extract the mesh's medial axis.
 - **Branch Point Detection**: Identifies nodes with degree > 2 on the skeleton graph.
-- **Radius Tapering Analysis**: Computes absolute/relative radius drop, tapering slope, and cumulative profiles along skeleton paths.
+- **Radial  Analysis**: Computes radial profile of the mesh.
+- **Tortuosity Analysis**: Computed tortuosity for different branches of the brain.
 - **Rotating GIF Output**: Creates a tiled GIF of all components rotating in 3D.
 - **Interactive Landmark Selection**: Allows manual point selection and mesh annotation using mouse clicks.
-- **CSV Export**: Saves tapering metrics and radius profiles to `.csv` files for downstream analysis.
 
 ----
 
@@ -28,7 +28,7 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
 
 ## Basic Component Processing
 
-This will provide results of radii tapering.
+This will provide results of radial profiles and tortuosity profiles.
 This will perform skeletonization and calculates: 
 
 Absolute and relative radius drop,
