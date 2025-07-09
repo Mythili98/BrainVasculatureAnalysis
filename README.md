@@ -1,4 +1,4 @@
-# Vein Mesh Processing and Analysis
+# Interactive Feature Analysis on 3D Brain Vascular Meshes
 
 This Python script provides a comprehensive pipeline for processing, analyzing, and visualizing 3D vein-like meshes using `trimesh`, `vedo`, `skeletor`, and `networkx`.
 The primary applications include connected component analysis, skeletonization, branch point detection, and radius tapering metric computation. Optional functionalities like landmark selection and rotating component visualization (GIF) are also provided.
@@ -27,24 +27,20 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas plotly
 
 ## Basic Component Processing
 
-This will provide results of radial profiles and tortuosity profiles.
-This will perform skeletonization and calculates: 
+This will perform mesh contaction, spline fitting and centerline extraction to provide mesh wise radial and tortuosiiity features.
 
-Absolute and relative radius drop,
+The profiles are displayed in an interactive fashion for faster analysis and inference.
 
-Radius tapering slope
-
-Cumulative length and tapering profile
-
-Saves the data to:
-
-radius_metrics.csv and radius_profile.csv
-
-
+### For radial profile
 ```bash
-python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze 0 
 ```
-# Other metrics coming soon..
+
+### For tortuosity profile
+```bash
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze 1
+```
+
 ## Landmark selection for mesh manipulation
 
 While selecting landmark, after selection is done, instead of traversing through all the mesh components, press 'Esc' to exit the plotter and save the results. Saved landmarks with the associated mesh is available as 'all_saved_comp.pkl' file. These files can be used for mesh manipulation and analysis in a collaborative fashion.
