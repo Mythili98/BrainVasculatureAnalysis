@@ -8,10 +8,9 @@ The primary applications include connected component analysis, skeletonization, 
 ## Features
 
 - **Mesh Component Splitting**: Automatically segments a mesh into its connected components.
-- **Skeletonization**: Uses wavefront-based skeletonization (`skeletor`) to extract the mesh's medial axis.
-- **Branch Point Detection**: Identifies nodes with degree > 2 on the skeleton graph.
+- **Skeletonization**: Uses wavefront-based skeletonization (`skeletor`) for mesh contaction and uses B-Spline method for filtering and centerline creation.
 - **Radial  Analysis**: Computes radial profile of the mesh.
-- **Tortuosity Analysis**: Computed tortuosity for different branches of the brain.
+- **Tortuosity Analysis**: Computed tortuosity for different branches of the brain vasculature.
 - **Rotating GIF Output**: Creates a tiled GIF of all components rotating in 3D.
 - **Interactive Landmark Selection**: Allows manual point selection and mesh annotation using mouse clicks.
 
@@ -22,7 +21,7 @@ The primary applications include connected component analysis, skeletonization, 
 Install all dependencies:
 
 ```bash
-pip install trimesh vedo skeletor networkx scipy imageio numpy pandas
+pip install trimesh vedo skeletor networkx scipy imageio numpy pandas plotly
 ```
 ---
 
