@@ -29,7 +29,7 @@ pip install trimesh vedo skeletor networkx scipy imageio numpy pandas plotly
 
 This will perform mesh contaction, spline fitting and centerline extraction to provide mesh wise radial and tortuosiiity features.
 
-The profiles are displayed in an interactive fashion for faster analysis and inference.
+The profiles are displayed in an interactive fashion for faster analysis and inference. Click on the components to see the global features.
 
 ### For radial profile
 ```bash
