@@ -4,6 +4,7 @@ import math
 from vedo import Plotter, Mesh
 from vedo import Sphere, show as vshow, Mesh, save
 import vedo
+import os
 import time
 from scipy.interpolate import splprep, splev
 import colorsys
@@ -22,9 +23,43 @@ from scipy.spatial.distance import euclidean
 import pickle
 import skeletor as sk
 import trimesh
-
+import time
 
 from vedo import Mesh, Points, Lines, show
+
+def extract_branches_between_junctions(graph):
+            deg = dict(graph.degree())
+            junctions = [n for n, d in deg.items() if d >= 3 or d == 1]
+            visited_edges = set()
+            branches = []
+
+            for node in junctions:
+                for neighbor in graph.neighbors(node):
+                    if (node, neighbor) in visited_edges or (neighbor, node) in visited_edges:
+                        continue
+
+                    path = [node, neighbor]
+                    visited_edges.add((node, neighbor))
+                    visited_edges.add((neighbor, node))
+                    current = neighbor
+                    prev = node
+
+                    while True:
+                        next_nodes = [n for n in graph.neighbors(current) if n != prev]
+                        if len(next_nodes) != 1:
+                            break
+                        prev, current = current, next_nodes[0]
+                        path.append(current)
+                        visited_edges.add((prev, current))
+                        visited_edges.add((current, prev))
+
+                        if graph.degree[current] == 1 or graph.degree[current] >= 3:
+                            break
+
+                    branches.append(path)
+
+            return branches
+
 
 def skeleton_and_branchpoints(mesh, visualize=True):
     import skeletor as sk
@@ -201,6 +236,7 @@ def skeleton_and_branchpoints(mesh, visualize=True):
     # Step 1: Combined points
     combined_points = np.vstack([spline_fit_points, filtered_non_spline_points])
 
+    ## n_neigh = 5
     # Step 1: Build kNN graph
     from sklearn.neighbors import kneighbors_graph
     A_combined = kneighbors_graph(combined_points, n_neighbors=5, mode='distance', include_self=False)
@@ -430,6 +466,7 @@ def parse_arguments():
     parser.add_argument('--landmark_select', action='store_true', help='Visualize and select important landmarks on the mesh. Save the points and mesh', default=False)
     parser.add_argument('--read_saved_comp', action='store_true', help='Read and visualize data saved in landmark_select', default=False)
     parser.add_argument('--test', action='store_true', help='Run the test for new functionality', default=False)
+    parser.add_argument('--structural', action='store_true', help='Run the test for new functionality', default=False)
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -491,6 +528,10 @@ if __name__ == '__main__':
             meshes.append((comp, sampled_pts, radii))
 
         global_radii = np.array(global_radii)
+        type_group = mesh_path.split(os.sep)
+        type_group = type_group[-2]
+        np.save(f"global_radii_{mesh_path[-10:-4]}_{type_group}.npy", global_radii)
+        global_radii_normal = (global_radii - global_radii.min()) / (global_radii.max() - global_radii.min())
         global_sampled_pts = np.array(global_sampled_pts)
         min_gr =  np.percentile(global_radii, 0.1)
         max_gr = np.percentile(global_radii, 99.9)
@@ -570,160 +611,20 @@ if __name__ == '__main__':
         plt_.add_callback("mouse click", on_click)
         plt_.show(viewup='z')
 
-    # if a.analyze == 1:
-    #     for i, comp in enumerate(filtered_c):
-    #         tree_final, combined_points, mesh, vedo_mesh = skeleton_and_branchpoints(comp, visualize=True)
-    #         import numpy as np
-    #         import networkx as nx
+        # ---------------- Global Radius Histogram ----------------
+        plt.figure(figsize=(7, 4))
+        plt.hist(global_radii_normal, bins=100, edgecolor='black')
+        plt.title("Global Radius Distribution (All Components)")
+        plt.xlabel("Radius")
+        plt.ylabel("Frequency")
+        plt.tight_layout()
+        plt.show()
 
-    #         global_torts = global_tortuosity(tree_final, combined_points)
-    #         print(f"Found {len(global_torts)} components.")
-    #         print(f"Mean global tortuosity: {np.mean(global_torts):.3f}")
-    #         print(f"Min: {np.min(global_torts):.3f}, Max: {np.max(global_torts):.3f}")
+        print(f"GLOBAL STATS → "
+            f"Min: {global_radii.min():.7f}, "
+            f"Mean: {global_radii.mean():.7f}, "
+            f"Max: {global_radii.max():.7f}")
 
-    #         from vedo import Lines, Plotter, Text2D
-    #         import numpy as np
-    #         import networkx as nx
-
-    #         def build_component_lines_with_tortuosity(tree, points):
-    #             components = list(nx.connected_components(tree))
-    #             actors = []
-    #             tortuosities = []
-
-    #             for i, comp in enumerate(components):
-    #                 sub = tree.subgraph(comp)
-    #                 edges = list(sub.edges())
-    #                 edge_lines = [[points[u], points[v]] for u, v in edges]
-    #                 actor = Lines(edge_lines, c='gray', lw=2)
-    #                 actor.name = f"component_{i}"
-    #                 actors.append(actor)
-
-    #                 # Tortuosity via longest path in component
-    #                 lengths = dict(nx.all_pairs_dijkstra_path_length(sub))
-    #                 max_len = 0
-    #                 max_pair = (None, None)
-    #                 for u in lengths:
-    #                     for v in lengths[u]:
-    #                         if lengths[u][v] > max_len:
-    #                             max_len = lengths[u][v]
-    #                             max_pair = (u, v)
-
-    #                 if max_pair[0] is not None:
-    #                     path_nodes = nx.shortest_path(sub, source=max_pair[0], target=max_pair[1])
-    #                     coords = points[path_nodes]
-    #                     path_len = np.sum(np.linalg.norm(np.diff(coords, axis=0), axis=1))
-    #                     euclidean = np.linalg.norm(coords[0] - coords[-1])
-    #                     tort = path_len / euclidean if euclidean > 0 else 1.0
-    #                 else:
-    #                     tort = 1.0
-
-    #                 tortuosities.append(tort)
-
-    #             return actors, tortuosities
-
-    #         # Generate actors and tort values
-    #         actors, tortuosities = build_component_lines_with_tortuosity(tree_final, combined_points)
-
-    #         # Vedo interactive plotter
-    #         plt = Plotter(title="Click a Component to Show Tortuosity", axes=1)
-
-    #         # Text overlay
-    #         info = Text2D("", pos="top-left", c='black')
-
-    #         def on_click(evt):
-    #             if not evt.actor:
-    #                 return
-    #             for a in actors:
-    #                 a.color("gray").lw(2)  # reset others
-    #             evt.actor.color("red").lw(4)
-    #             idx = actors.index(evt.actor)
-    #             info.text(f"Component #{idx} → Tortuosity: {tortuosities[idx]:.3f}")
-
-    #         plt += actors
-    #         plt += info
-    #         plt.add_callback("mouse click", on_click)
-    #         plt.show(viewup='z')
-
-    # if a.analyze == 1:
-    #     for i, comp in enumerate(filtered_c):
-    #         tree_final, combined_points, mesh, vedo_mesh = skeleton_and_branchpoints(comp, visualize=False)
-    #         import numpy as np
-    #         import networkx as nx
-    #         from vedo import Lines, Plotter, Text2D
-
-    #         def extract_branches_between_junctions(graph):
-    #             deg = dict(graph.degree())
-    #             junctions = [n for n, d in deg.items() if d >= 3 or d == 1]
-    #             visited_edges = set()
-    #             branches = []
-
-    #             for node in junctions:
-    #                 for neighbor in graph.neighbors(node):
-    #                     if (node, neighbor) in visited_edges or (neighbor, node) in visited_edges:
-    #                         continue
-
-    #                     path = [node, neighbor]
-    #                     visited_edges.add((node, neighbor))
-    #                     visited_edges.add((neighbor, node))
-    #                     current = neighbor
-    #                     prev = node
-
-    #                     while True:
-    #                         next_nodes = [n for n in graph.neighbors(current) if n != prev]
-    #                         if len(next_nodes) != 1:
-    #                             break
-    #                         prev, current = current, next_nodes[0]
-    #                         path.append(current)
-    #                         visited_edges.add((prev, current))
-    #                         visited_edges.add((current, prev))
-
-    #                         if graph.degree[current] == 1 or graph.degree[current] >= 3:
-    #                             break
-
-    #                     branches.append(path)
-
-    #             return branches
-
-    #         branch_paths = extract_branches_between_junctions(tree_final)
-    #         branch_torts = []
-    #         branch_actors = []
-
-    #         for idx, path in enumerate(branch_paths):
-    #             coords = combined_points[path]
-    #             if len(coords) < 2:
-    #                 continue
-    #             euclidean = np.linalg.norm(coords[0] - coords[-1])
-    #             path_len = np.sum(np.linalg.norm(np.diff(coords, axis=0), axis=1))
-    #             tort = path_len / euclidean if euclidean > 0 else 1.0
-    #             branch_torts.append(tort)
-
-    #             lines = [[coords[i], coords[i+1]] for i in range(len(coords)-1)]
-    #             actor = Lines(lines, c='gray', lw=2)
-    #             actor.name = f"branch_{idx}"
-    #             branch_actors.append(actor)
-
-    #         print(f"Total branches: {len(branch_actors)}")
-    #         print(f"Mean tortuosity: {np.mean(branch_torts):.3f}")
-    #         print(f"Min: {np.min(branch_torts):.3f}, Max: {np.max(branch_torts):.3f}")
-
-    #         # Vedo interactive plotter
-    #         plt = Plotter(title="Click Branch to Show Tortuosity", axes=1)
-    #         info = Text2D("", pos="top-left", c='black')
-
-    #         def on_click(evt):
-    #             if not evt.actor:
-    #                 return
-    #             for a in branch_actors:
-    #                 a.color("gray").lw(2)
-    #             evt.actor.color("red").lw(4)
-    #             idx = branch_actors.index(evt.actor)
-    #             info.text(f"Branch #{idx} → Tortuosity: {branch_torts[idx]:.3f}")
-    #             plt.render()
-
-    #         plt += branch_actors
-    #         plt += info
-    #         plt.add_callback("mouse click", on_click)
-    #         plt.show(viewup='z')
 
     if a.analyze == 1:
         all_branch_actors = []
@@ -811,6 +712,142 @@ if __name__ == '__main__':
         plt += info
         plt.add_callback("mouse click", on_click)
         plt.show(viewup='z')
+
+    if a.test:
+        from vedo import Plotter, Text2D, Lines
+        import numpy as np
+        import networkx as nx
+
+        all_branch_actors = []
+        all_tortuosities = []
+        mesh_id_map = {}
+
+        # ---------------------------------------------------------
+        # STRUCTURAL BRANCH EXTRACTION
+        # ---------------------------------------------------------
+        def extract_structural_branches(graph):
+            """
+            Extract maximal structural branches:
+            Internal nodes: degree >= 2
+            Endpoints: degree != 2
+            """
+
+            deg = dict(graph.degree())
+            visited_edges = set()
+            branches = []
+
+            # Nodes that can start branches (junctions + terminals)
+            start_nodes = [n for n, d in deg.items() if d != 2]
+
+            for node in start_nodes:
+                for neighbor in graph.neighbors(node):
+
+                    if (node, neighbor) in visited_edges:
+                        continue
+
+                    path = [node, neighbor]
+                    visited_edges.add((node, neighbor))
+                    visited_edges.add((neighbor, node))
+
+                    prev = node
+                    current = neighbor
+
+                    # Continue while internal node (degree == 2)
+                    while deg[current] >= 2:
+                        next_nodes = [n for n in graph.neighbors(current) if n != prev]
+                        if not next_nodes:
+                            break
+
+                        next_node = next_nodes[0]
+                        path.append(next_node)
+
+                        visited_edges.add((current, next_node))
+                        visited_edges.add((next_node, current))
+
+                        prev, current = current, next_node
+
+                    branches.append(path)
+
+            return branches
+
+        # ---------------------------------------------------------
+        # PROCESS EACH CONNECTED COMPONENT
+        # ---------------------------------------------------------
+        for comp_idx, comp in enumerate(filtered_c):
+
+            tree_final, combined_points, mesh, vedo_mesh = skeleton_and_branchpoints(
+                comp, visualize=False
+            )
+
+            if len(tree_final.nodes()) < 2:
+                continue
+
+            branches = extract_structural_branches(tree_final)
+
+            for b_idx, path in enumerate(branches):
+
+                coords = combined_points[path]
+
+                if len(coords) < 2:
+                    continue
+
+                # Straight-line distance
+                euclidean = np.linalg.norm(coords[0] - coords[-1])
+
+                # Path length
+                path_len = np.sum(
+                    np.linalg.norm(np.diff(coords, axis=0), axis=1)
+                )
+
+                tort = path_len / euclidean if euclidean > 0 else 1.0
+
+                # Build visual branch
+                lines = [
+                    [coords[i], coords[i + 1]]
+                    for i in range(len(coords) - 1)
+                ]
+
+                actor = Lines(lines, c="gray", lw=3)
+                actor.name = f"comp{comp_idx}_branch{b_idx}"
+
+                all_branch_actors.append(actor)
+                all_tortuosities.append(tort)
+                mesh_id_map[id(actor)] = len(all_tortuosities) - 1
+
+        print(f"Total structural branches: {len(all_branch_actors)}")
+
+        # ---------------------------------------------------------
+        # VISUALIZATION
+        # ---------------------------------------------------------
+        plt = Plotter(title="Click Branch to Show Tortuosity", axes=1)
+        info = Text2D("", pos="top-left", c="black")
+
+        def on_click(evt):
+
+            if not evt.actor:
+                return
+
+            # Reset all branches
+            for a in all_branch_actors:
+                a.color("gray").lw(3)
+
+            # Highlight selected
+            evt.actor.color("red").lw(5)
+
+            idx = mesh_id_map.get(id(evt.actor), None)
+
+            if idx is not None:
+                tort = all_tortuosities[idx]
+                info.text(
+                    f"Branch #{idx}\n"
+                    f"Tortuosity: {tort:.4f}"
+                )
+                plt.render()
+
+        plt += all_branch_actors
+        plt += info
+        plt.add_callback("mouse click", on_click)
+        plt.show(viewup="z")
 
     if a.gif_tiles:
         tiled_plot_with_rotation(filtered_c[:70], gif_path="vein_rotation.gif")
@@ -903,4 +940,175 @@ if __name__ == '__main__':
             mesh = Mesh([content["vertices"], content["faces"]])
             points = Points(content["selected_points"], r=10, c="red")
             show(mesh, points, axes=1, viewup="z", interactive=True)
+    
+    if a.structural:
+        meshes = []
+        global_sampled_pts = []
+        global_radii = []
+        all_branch_actors = []
+        all_tortuosities = []
+        mesh_id_map = {}
+        for i, comp in enumerate(filtered_c):
+            comp_branches = []
+            tree_final, combined_points, mesh, vedo_mesh = skeleton_and_branchpoints(comp, visualize=True)
+            from scipy.spatial import cKDTree
+            import numpy as np
 
+            # Build a KD-tree on the mesh surface points
+            surface_points = mesh.sample(100000)  # Sample dense enough for accuracy
+            surface_tree = cKDTree(surface_points)
+            sampled_pts = []
+            radii = []
+            for u, v in tree_final.edges():
+                p1 = combined_points[u]
+                p2 = combined_points[v]
+                segment = np.linspace(p1, p2, num=10)
+
+                for pt in segment:
+                    dist, _ = surface_tree.query(pt)
+                    global_sampled_pts.append(pt)
+                    global_radii.append(dist)
+                    sampled_pts.append(pt)
+                    radii.append(dist)
+            sampled_pts = np.array(sampled_pts)
+            radii = np.array(radii)
+            # meshes.append((comp, sampled_pts, radii))
+
+            branches = extract_branches_between_junctions(tree_final)
+
+            for b_idx, path in enumerate(branches):
+                coords = combined_points[path]
+                if len(coords) < 2:
+                    continue
+
+                euclidean = np.linalg.norm(coords[0] - coords[-1])
+                path_len = np.sum(np.linalg.norm(np.diff(coords, axis=0), axis=1))
+                tort = path_len / euclidean if euclidean > 0 else 1.0
+
+                # Store TRUE data (not actor-derived)
+                comp_branches.append({
+                    "coords": coords,
+                    "tortuosity": tort
+                })
+
+                # Only for visualization
+                lines = [[coords[i], coords[i+1]] for i in range(len(coords)-1)]
+                actor = Lines(lines, c='gray', lw=2)
+                actor.name = f"comp{i}_branch{b_idx}"
+
+                all_branch_actors.append(actor)
+                all_tortuosities.append(tort)
+                mesh_id_map[id(actor)] = len(all_tortuosities) - 1
+            
+            meshes.append({
+            "comp": comp,
+            "sampled_pts": sampled_pts,
+            "radii": radii,
+            "branches": comp_branches})
+
+        print(f"Total branches across all components: {len(all_branch_actors)}")
+
+        global_radii = np.array(global_radii)
+        type_group = mesh_path.split(os.sep)
+        type_group = type_group[-2]
+        np.save(f"global_radii_{mesh_path[-7:-4]}_{type_group}_part.npy", global_radii)
+        global_radii_normal = (global_radii - global_radii.min()) / (global_radii.max() - global_radii.min())
+        global_sampled_pts = np.array(global_sampled_pts)
+        min_gr =  np.percentile(global_radii, 0.1)
+        max_gr = np.percentile(global_radii, 99.9)
+        norm = mcolors.Normalize(vmin=min_gr, vmax=max_gr)
+        cmap = plt.get_cmap('jet')
+
+        vedo_meshes = []
+        for data in meshes:
+            comp = data["comp"]
+            sampled_pts = data["sampled_pts"]
+            radii = data["radii"]
+            vmesh = Mesh([comp.vertices, comp.faces])
+            face_centers = vmesh.cell_centers().points
+
+            sample_tree = cKDTree(sampled_pts)
+            dists, idxs = sample_tree.query(face_centers)
+            face_radii = radii[idxs]
+
+            face_colors = (cmap(norm(face_radii))[:, :3] * 255).astype(np.uint8)
+            vmesh.cellcolors = face_colors
+            vmesh.alpha(0.6)
+            vedo_meshes.append(vmesh)
+            
+    
+        # Show all in one scene
+        from vedo import Plotter, Text2D, merge, show
+        full_mesh = merge(vedo_meshes)
+        show(full_mesh, axes=1, viewup='z')
+
+        plt = Plotter(title="Click Branch to Show Tortuosity", axes=1)
+        info = Text2D("", pos="top-left", c='black')
+
+        def on_click(evt):
+            if not evt.actor:
+                return
+            for a in all_branch_actors:
+                a.color("gray").lw(2)
+            evt.actor.color("red").lw(4)
+
+            idx = mesh_id_map.get(id(evt.actor), None)
+            if idx is not None:
+                tort = all_tortuosities[idx]
+                info.text(f"Branch #{idx} → Tortuosity: {tort:.3f}")
+                plt.render()
+
+        plt += all_branch_actors
+        plt += info
+        plt.add_callback("mouse click", on_click)
+        plt.show(viewup='z')
+
+        import pickle
+
+        all_data = {
+            "mesh_path": mesh_path,
+            "components": []
+        }
+
+        for comp_idx, data in enumerate(meshes):
+
+            comp = data["comp"]
+            sampled_pts = data["sampled_pts"]
+            radii = data["radii"]
+            branches = data["branches"]
+
+            vmesh = Mesh([comp.vertices, comp.faces])
+            face_centers = vmesh.cell_centers().points
+
+            sample_tree = cKDTree(sampled_pts)
+            _, idxs = sample_tree.query(face_centers)
+            face_radii = radii[idxs]
+
+            comp_data = {
+                "mesh": {
+                    "vertices": comp.vertices,
+                    "faces": comp.faces
+                },
+
+                "radius": {
+                    "sampled_points": sampled_pts,
+                    "values": radii
+                },
+
+                "face_radius": {
+                    "centers": face_centers,
+                    "values": face_radii
+                },
+
+                "branches": branches
+            }
+
+            all_data["components"].append(comp_data)
+
+        # Save once
+        output_file = f"/home/desktop/Desktop/22104412_Docs/SurfaceRecon/Vein-recons/new_component_analysis/stuctural_meshes/structural_part_{mesh_path[-7:-4]}.pkl"
+
+        with open(output_file, "wb") as f:
+            pickle.dump(all_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        print(f"Saved full structural data → {output_file}")
