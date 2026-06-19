@@ -41,6 +41,16 @@ python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze 0
 python vein_analysis.py --mesh_path <path_to_your_mesh_file> --analyze 1
 ```
 
+### To save structural information
+```bash
+python vein_analysis.py --mesh_path <path_to_your_mesh_file> --structural
+```
+It saves the,
+sampled_points: points along skeleton segments
+and radius values: local radius (distance to surface) at those sample points.
+
+It also saves the mesh with the face_radii --> saves in recomputing the face mapping with radial values.
+
 ## Landmark selection for mesh manipulation
 
 While selecting landmark, after selection is done, instead of traversing through all the mesh components, press 'Esc' to exit the plotter and save the results. Saved landmarks with the associated mesh is available as 'all_saved_comp.pkl' file. These files can be used for mesh manipulation and analysis in a collaborative fashion.
